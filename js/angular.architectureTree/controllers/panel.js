@@ -146,15 +146,22 @@ angular.module('ChartsApp').controller('panelCtrl', function ($scope, $timeout, 
             $scope.$digest();
         })
         .on('selectNode', function(event) {
-            $scope.enterEdit(event.detail);
-            $scope.$digest();
-        })
-        .on('unSelectNode', function(event) {
-            if ($scope.edit) {
-                $scope.leaveEdit();
-                $scope.$digest();
+            $scope.node = getNodeByName(event.detail, $scope.data);
+            if ($scope.node._children || ($scope.node.children && $scope.node.children.length > 0)) {
+                data.toggleNode($scope.node.name);
+                $timeout(function() {
+                    data.emitRefresh();
+                });
             }
-        });
+            // $scope.enterEdit(event.detail);
+            // $scope.$digest();
+        })
+        // .on('unSelectNode', function(event) {
+        //     if ($scope.edit) {
+        //         $scope.leaveEdit();
+        //         $scope.$digest();
+        //     }
+        // });
 
     $scope.enterEdit = function(name) {
         $scope.originalNode = getNodeByName(name, $scope.data);

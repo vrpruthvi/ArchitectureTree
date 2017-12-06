@@ -178,6 +178,20 @@ angular.module('ChartsApp').service('data', function ($http, $q, bus) {
         return names;
     };
 
+    var toggleNode = function(name) {
+        var parentNode = getParentNodeByName(name);
+        var node = getNodeByName(name);
+        if (node._children) {
+            node.children = node._children;
+            node._children = null;
+        } else {
+            node._children = node.children;
+            node.children = [];
+        }
+        // removeNode(name);
+        updateNode(name, node);
+    }
+
     return {
         fetchJsonData: fetchJsonData,
         getJsonData: getJsonData,
@@ -187,6 +201,7 @@ angular.module('ChartsApp').service('data', function ($http, $q, bus) {
         updateNode: updateNode,
         addNode: addNode,
         removeNode: removeNode,
-        moveNode: moveNode
+        moveNode: moveNode,
+        toggleNode: toggleNode
     };
 });

@@ -12,8 +12,8 @@ d3.chart.architectureTree = function() {
     function chart(){
         if (typeof(tree) === 'undefined') {
             tree = d3.layout.tree()
-                .size([360, diameter / 2 - 120])
-                .separation(function(a, b) { return (a.parent == b.parent ? 1 : 2) / a.depth; });
+                .size([360, diameter / 2 - 120]);
+                // .separation(function(a, b) { return (a.parent == b.parent ? 1 : 2) / a.depth; });
 
             svg = d3.select("#graph").append("svg")
                 .attr("width", diameter)
@@ -83,7 +83,7 @@ d3.chart.architectureTree = function() {
             });
 
         node.append("circle")
-            .attr("r", function(d) { return 4.5 * (d.size || 1); })
+            .attr("r", function(d) { return 4 * (d.size || 1); })
             .style('stroke', function(d) {
                 return d3.scale.linear()
                     .domain([1, 0])
@@ -223,17 +223,17 @@ d3.chart.architectureTree = function() {
         if (technosCount) {
             if (d.index.technos.length === 0) return false;
             for (i = 0; i < technosCount; i++) {
-                if (d.index.technos.indexOf(filters.technos[i]) === -1) return false;
+                if (d.index.technos.indexOf(filters.technos[i]) > -1) return true;
             }
         }
         var hostCount = filters.hosts.length;
         if (hostCount) {
             if (d.index.hosts.length === 0) return false;
             for (i = 0; i < hostCount; i++) {
-                if (d.index.hosts.indexOf(filters.hosts[i]) === -1) return false;
+                if (d.index.hosts.indexOf(filters.hosts[i]) > -1) return true;
             }
         }
-        return true;
+        return false;
     };
 
     var refreshFilters = function() {

@@ -3,7 +3,7 @@
 }
 
 .node {
-    font: 11px sans-serif;
+    font: 9px sans-serif;
 }
 
 .node.notFound {
@@ -19,7 +19,7 @@
 .link {
     fill: none;
     stroke: #ddd;
-    stroke-width: 1.5px;
+    stroke-width: 1px;
 }
 
 .panel-action {
@@ -102,14 +102,16 @@
 }
 
 #node-active {
-    font-size: 14px;
-    font-weight: bold;
+    /*font-size: 14px;
+    font-weight: bold;*/
 }
+
 #node-active text {
-    fill: rgb(70, 130, 180);
+    /*fill: rgb(70, 130, 180);*/
 }
 
 #graph {
     width: 960px;
     margin: auto;
+    margin-top: 60px;
 }
