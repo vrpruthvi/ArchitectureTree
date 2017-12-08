@@ -16,8 +16,8 @@ angular.module('ChartsApp').directive('treeChart', function(bus) {
                     return;
                 }
 
-                chart.diameter(960)
-                    .data(scope.data);
+                chart.diameter(1000);
+                chart.data(scope.data);
 
                 d3.select(element[0])
                     .call(chart);
@@ -33,6 +33,10 @@ angular.module('ChartsApp').directive('treeChart', function(bus) {
 
             bus.on('hostsFilterChange', function(hostsFilter) {
                 chart.hostsFilter(hostsFilter);
+            });
+
+            bus.on('stagesFilterChange', function(stagesFilter) {
+                chart.stagesFilter(stagesFilter);
             });
 
             bus.on('select', function(name) {

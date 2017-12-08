@@ -27,26 +27,14 @@
             </ul>
         </div>
 
-        <div class="properties" ng-if="node.details.Technos">
+        <div class="properties" ng-if="node.technos">
             <h5>Component Type</h5>
-            <ul>
-                <li ng-repeat="techno in node.details.Technos">
-                    {{ techno }}
-                </li>
-            </ul>
+            <h7>{{ node.technos }}</h7>
         </div>
 
-        <div class="properties" ng-if="node.details.Host">
+        <div class="properties" ng-if="node.host">
             <h5>RWB Category</h5>
-            <ul>
-                <li ng-repeat="(hostName, servers) in node.host">
-                    {{ hostName }}
-                    <ul ng-if="servers">
-                        <li ng-repeat="server in servers">{{ server }}</li>
-                    </ul>
-                    <span ng-if="detail.via">({{ detail.via }})</span>
-                </li>
-            </ul>
+            <h7>{{ node.host }}</h7>
         </div>
 
     </div>

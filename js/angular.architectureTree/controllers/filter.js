@@ -1,15 +1,22 @@
 angular.module('ChartsApp').controller('filterCtrl', function ($scope, bus) {
     'use strict';
 
+    var technosFilter = [];
+    var hostsFilter = [];
+    var stagesFilter = [];
+    var container = angular.element(document.querySelector('#panel'));
+
     bus.on('updateData', function(data) {
         $scope.technos = computeTechnos(data);
         $scope.hosts = computeHosts(data);
     });
 
-    $scope.nameFilter = '';
+    bus.on('updateStages', function(stages) {
+        $scope.stages = angular.copy(stages);
+        bus.emit('stagesFilterChange', stagesFilter);
+    });
 
-    var technosFilter = [];
-    var hostsFilter = [];
+    $scope.nameFilter = '';
 
     $scope.$watch('nameFilter', function(name) {
         bus.emit('nameFilterChange', name);
@@ -37,18 +44,29 @@ angular.module('ChartsApp').controller('filterCtrl', function ($scope, bus) {
         bus.emit('hostsFilterChange', hostsFilter);
     };
 
+    $scope.toggleStageFilter = function(stage) {
+        if ($scope.isStageInFilter(stage)) {
+            stagesFilter.splice(stagesFilter.indexOf(stage), 1);
+        } else {
+            stagesFilter.push(stage);
+        }
+        bus.emit('stagesFilterChange', stagesFilter);
+    }
+
     $scope.isHostInFilter = function(host) {
         return hostsFilter.indexOf(host) !== -1;
     };
+
+    $scope.isStageInFilter = function(stage) {
+        return stagesFilter.indexOf(stage) !== -1;
+    }
 
     function computeTechnos(rootNode) {
         var technos = [];
 
         function addNodeTechnos(node) {
             if (node.technos) {
-                node.technos.forEach(function(techno) {
-                    technos[techno] = true;
-                });
+                technos[node.technos] = true;
             }
             if (node.children) {
                 node.children.forEach(function(childNode) {
@@ -67,9 +85,7 @@ angular.module('ChartsApp').controller('filterCtrl', function ($scope, bus) {
 
         function addNodeHosts(node) {
             if (node.host) {
-                for (var i in node.host) {
-                    hosts[i] = true;
-                }
+                hosts[node.host] = true;
             }
             if (node.children) {
                 node.children.forEach(function(childNode) {
@@ -82,5 +98,19 @@ angular.module('ChartsApp').controller('filterCtrl', function ($scope, bus) {
 
         return Object.keys(hosts).sort();
     }
+
+    var toggleNode = function(event, name) {
+        $scope.node = getNodeByName(event ? event.detail : name, $scope.data);
+        if ($scope.node._children || ($scope.node.children && $scope.node.children.length > 0)) {
+            data.toggleNode($scope.node.name);
+            $timeout(function() {
+                data.emitRefresh();
+            });
+        }
+    }
+
+    // container.on('selectNode', function(event) {
+    //     $scope.toggleStageFilter(event.detail);
+    // });
 
 });

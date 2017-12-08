@@ -188,7 +188,6 @@ angular.module('ChartsApp').service('data', function ($http, $q, bus) {
             node._children = node.children;
             node.children = [];
         }
-        // removeNode(name);
         updateNode(name, node);
     }
 

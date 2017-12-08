@@ -32,6 +32,7 @@ angular.module('ChartsApp').controller('chartCtrl', function ($scope, bus, data)
 	                parseObject(sheetName, oJS);
                 }
             });
+            bus.emit('updateStages', stages);
             $scope.$apply(function(){
             	data.setJsonData(datas[0]);
             });
@@ -55,14 +56,13 @@ angular.module('ChartsApp').controller('chartCtrl', function ($scope, bus, data)
     var parseItem = function(item, index) {
     	// create stage if not present
     	var field = {
+            id: item.__rowNum__,
     		name: item[fieldName],
-    		technos: [item[fieldType]]
+    		technos: item[fieldType]
     	};
     	fieldCategory.forEach(function(category, i) {
     		if(item[category]) {
-    			field.host = {
-	    			[item[category]]: []
-	    		}
+    			field.host = item[category]
 	    		checkStage(item, index);
     			pushItem(field, item[stageCategory[i]], index);
     		}
@@ -84,7 +84,6 @@ angular.module('ChartsApp').controller('chartCtrl', function ($scope, bus, data)
     		children: []
     	}
     	datas[index].children.push(stage);
-    	console.log(`Added: ${item[category]}`);
     }
 
     var pushItem = function(field, category, index) {

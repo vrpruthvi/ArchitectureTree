@@ -4,7 +4,7 @@ d3.chart = d3.chart || {};
 
 d3.chart.architectureTree = function() {
 
-    var svg, tree, treeData, diameter, activeNode;
+    var svg, tree, orgTreeData, treeData, diameter, activeNode, nodes, links;
 
     /**
      * Build the chart
@@ -12,7 +12,7 @@ d3.chart.architectureTree = function() {
     function chart(){
         if (typeof(tree) === 'undefined') {
             tree = d3.layout.tree()
-                .size([360, diameter / 2 - 120]);
+                .size([360, diameter / 2 - 220])
                 // .separation(function(a, b) { return (a.parent == b.parent ? 1 : 2) / a.depth; });
 
             svg = d3.select("#graph").append("svg")
@@ -22,12 +22,10 @@ d3.chart.architectureTree = function() {
                 .attr("transform", "translate(" + diameter / 2 + "," + diameter / 2 + ")");
         }
 
-        var nodes = tree.nodes(treeData),
-            links = tree.links(nodes);
-
         activeNode = null;
 
-        svg.call(updateData, nodes, links);
+        treeData.children.forEach(collapse);
+        svg.call(updateData);
     }
 
     /**
@@ -35,7 +33,16 @@ d3.chart.architectureTree = function() {
      * @param {Object} container
      * @param {Array}  nodes
      */
-    var updateData = function(container, nodes, links) {
+    var updateData = function() {
+
+        // setTimeout(function(){
+        //     var dummy = treeData;
+        //     dummy.children.splice(0, 1);
+        //     updateData(container, dummy);
+        // }, 5000);
+        
+        var nodes = tree.nodes(treeData),
+            links = tree.links(nodes);
 
         // Enrich data
         addDependents(nodes);
@@ -55,7 +62,7 @@ d3.chart.architectureTree = function() {
             .attr("class", "link")
             .attr("d", diagonal);
 
-        var nodeSelection = container.selectAll(".node").data(nodes, function(d) {
+        var nodeSelection = svg.selectAll(".node").data(nodes, function(d) {
             return d.name + Math.random();  // always update node
         });
         nodeSelection.exit().remove();
@@ -69,7 +76,7 @@ d3.chart.architectureTree = function() {
                 }
                 fade(0.1)(d);
                 document.querySelector('#panel').dispatchEvent(
-                    new CustomEvent("hoverNode", { "detail": d.name })
+                    new CustomEvent("hoverNode", { "detail": d.id })
                 );
             })
             .on('mouseout', function(d) {
@@ -97,9 +104,24 @@ d3.chart.architectureTree = function() {
             });
 
         node.append("text")
-            .attr("dy", ".31em")
-            .attr("text-anchor", function(d) { return d.x < 180 ? "start" : "end"; })
-            .attr("transform", function(d) { return d.x < 180 ? "translate(8)" : "rotate(180)translate(-8)"; })
+            .attr("dy", function(d) {
+                if (d.depth)
+                    return ".31em";
+                else
+                    return "-10";
+            })
+            .attr("text-anchor", function(d) { 
+                if (d.depth)
+                    return d.x < 180 ? "start" : "end";
+                else
+                    return "middle";
+            })
+            .attr("transform", function(d) {
+                if (d.depth)
+                    return d.x < 180 ? "translate(8)" : "rotate(180)translate(-8)";
+                else
+                    return "rotate(-90)translate(-8)";
+            })
             .text(function(d) {
                 return d.name;
             });
@@ -168,9 +190,7 @@ d3.chart.architectureTree = function() {
     var getDetailCascade = function(node, detailName) {
         var values = [];
         if (node[detailName]) {
-            node[detailName].forEach(function(value) {
-                values.push(value);
-            });
+            values.push(node[detailName]);
         }
         if (node.parent) {
             values = values.concat(getDetailCascade(node.parent, detailName));
@@ -181,9 +201,7 @@ d3.chart.architectureTree = function() {
     var getHostsCascade = function(node) {
         var values = [];
         if (node.host) {
-            for (var i in node.host) {
-                values.push(i);
-            }
+            values.push(node.host);
         }
         if (node.parent) {
             values = values.concat(getHostsCascade(node.parent));
@@ -204,43 +222,52 @@ d3.chart.architectureTree = function() {
         };
     };
 
+    var collapse = function(d) {
+        if (d.children) {
+            d._children = d.children;
+            d._children.forEach(collapse);
+            d.children = null;
+        }
+    }
+
     var filters = {
       name: '',
       technos: [],
-      hosts: []
-    };
-
-    var isFoundByFilter = function(d) {
-        var i;
-        if (!filters.name && !filters.technos.length && !filters.hosts.length) {
-            // nothing selected
-            return true;
-        }
-        if (filters.name) {
-            if (d.name.toLowerCase().indexOf(filters.name) === -1) return false;
-        }
-        var technosCount = filters.technos.length;
-        if (technosCount) {
-            if (d.index.technos.length === 0) return false;
-            for (i = 0; i < technosCount; i++) {
-                if (d.index.technos.indexOf(filters.technos[i]) > -1) return true;
-            }
-        }
-        var hostCount = filters.hosts.length;
-        if (hostCount) {
-            if (d.index.hosts.length === 0) return false;
-            for (i = 0; i < hostCount; i++) {
-                if (d.index.hosts.indexOf(filters.hosts[i]) > -1) return true;
-            }
-        }
-        return false;
+      hosts: [],
+      stages: []
     };
 
     var refreshFilters = function() {
-        d3.selectAll('.node').classed('notFound', function(d) {
-            return !isFoundByFilter(d);
-        });
-    };
+        treeData = angular.copy(orgTreeData);
+        filterTree();
+    }
+
+    var filterTree = function() {
+        if (filters.stages.length > 0) {
+            treeData.children = treeData.children.filter(function(stage) {
+                return filters.stages.indexOf(stage.name) > -1;
+            });
+        }
+        if (filters.technos.length > 0 || filters.hosts.length > 0 || filters.name.length > 0) {
+            treeData.children.forEach(function(stage, index) {
+                treeData.children[index].children = stage.children.filter(function(child) {
+                    if(filters.technos.length > 0) {
+                        if (filters.technos.indexOf(child.technos) === -1) return false;
+                    }
+                    if(filters.hosts.length > 0) {
+                        if (filters.hosts.indexOf(child.host) === -1) return false;
+                    }
+                    if(filters.name.length > 0) {
+                        if (child.name.toLowerCase().indexOf(filters.name.toLowerCase()) === -1) return false;
+                    }
+                    return true;
+                });
+            });
+        } else if(!filters.stages.length) {
+            treeData.children.forEach(collapse);
+        }
+        updateData();
+    }
 
     var select = function(name) {
         if (activeNode && activeNode.name == name) {
@@ -278,6 +305,7 @@ d3.chart.architectureTree = function() {
     chart.data = function(value) {
         if (!arguments.length) return treeData;
         treeData = value;
+        orgTreeData = angular.copy(value);
         return chart;
     };
 
@@ -299,6 +327,11 @@ d3.chart.architectureTree = function() {
 
     chart.hostsFilter = function(hostsFilter) {
         filters.hosts = hostsFilter;
+        refreshFilters();
+    };
+
+    chart.stagesFilter = function(stagesFilter) {
+        filters.stages = stagesFilter;
         refreshFilters();
     };
 
