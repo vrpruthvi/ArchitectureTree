@@ -60,6 +60,7 @@ angular.module('ChartsApp').controller('chartCtrl', function ($scope, bus, data)
     		name: item[fieldName],
     		technos: item[fieldType]
     	};
+        field = Object.assign({}, field, item);
     	fieldCategory.forEach(function(category, i) {
     		if(item[category]) {
     			field.host = item[category]

@@ -27,7 +27,7 @@
             </ul>
         </div>
 
-        <div class="properties" ng-if="node.technos">
+        <!-- <div class="properties" ng-if="node.technos">
             <h5>Component Type</h5>
             <h7>{{ node.technos }}</h7>
         </div>
@@ -35,6 +35,15 @@
         <div class="properties" ng-if="node.host">
             <h5>RWB Category</h5>
             <h7>{{ node.host }}</h7>
+        </div> -->
+
+        <div class="properties" ng-if="node.technos">
+            <h5>Field Values</h5>
+            <ul style="height: 300px; overflow: scroll;">
+                <li ng-repeat="(attr, value) in node" ng-if="attr!='parent'">
+                    {{ attr }}: {{ value }}
+                </li>
+            </ul>
         </div>
 
     </div>
